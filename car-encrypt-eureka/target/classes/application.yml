@@ -1,0 +1,13 @@
+server:
+  port: 10086
+spring:
+  application:
+    name: echo-eureka
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:${server.port}/eureka/
+  server:
+    eviction-interval-timer-in-ms: 5000 #ÿ5�����Ϊ�쳣��ʧЧ�ķ�����м���޳�
+    enable-self-preservation: false   #�ر����ұ���״̬�����ұ�����ָ����ĳЩ΢����ֹ֮ͣ����Ȼ�����б��б���һ��ʱ�䣨���֣�
+

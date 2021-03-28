@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.echo.mapper.KGCMasterMapper">
+    <update id="updateKgc" parameterType="map">
+        update master_key set public_enc_masterKey = #{publicEncMasterKey},
+                               private_enc_masterKey = #{privateEncMasterKey},
+                               public_sign_masterKey = #{publicSignMasterKey},
+                               private_sign_masterKey = #{privateSignMasterKey} where id = #{id}
+    </update>
+    <select id="getPublicEncryptKey" resultType="String">
+        select
+    </select>
+</mapper>

@@ -1,0 +1,20 @@
+server:
+  port: 10010
+spring:
+  application:
+    name: echo-zuul
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:10086/eureka
+zuul:
+  routes:
+    service-provider: /provider/**
+    service-consumer: /consumer/**
+  prefix: /api
+  host:
+    connect-timeout-millis: 60000
+    socket-timeout-millis: 60000
+ribbon:
+  ReadTimeout: 40000
+  ConnectTimeout: 40000
