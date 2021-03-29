@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Base64;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Component
@@ -25,14 +26,33 @@ public class KGCMaster {
         sm9Curve = new SM9Curve();
         sm9 = new SM9(sm9Curve);
         kgc = new KGC(sm9Curve);
-        encryptMasterKeyPair = kgc.genEncryptMasterKeyPair();
-        signMasterKeyPair = kgc.genSignMasterKeyPair();
+        //尝试一下还原MasterKeyPair 是否能解决负载均衡问题
+        List<Map<String, String>> keyPair = kgcMasterService.getKeyPair();
+        System.out.println(keyPair);
+        String id = "0E7231DC797C486290E8713CA3C6ECCC";
+        if(keyPair.get(0) == null){
+            encryptMasterKeyPair = kgc.genEncryptMasterKeyPair();
+            signMasterKeyPair = kgc.genSignMasterKeyPair();
+            Map<String,Object> map = new HashMap<>();
+            map.put("id", id);
+            map.put("encMasterKeyPair",Base64.getUrlEncoder().encode(encryptMasterKeyPair.toByteArray()));
+            map.put("signMasterKeyPair",Base64.getUrlEncoder().encode(signMasterKeyPair.toByteArray()));
+            kgcMasterService.updateKeyPair(map);
+        }
+        else{
+            byte[] encMasterKeyPairByte = Base64.getUrlDecoder().decode(keyPair.get(0).get("enc_master_key_pair"));
+            byte[] signMasterKeyPairByte = Base64.getUrlDecoder().decode(keyPair.get(0).get("sign_master_key_pair"));
+            encryptMasterKeyPair = MasterKeyPair.fromByteArray(sm9Curve,encMasterKeyPairByte);
+            signMasterKeyPair = MasterKeyPair.fromByteArray(sm9Curve,signMasterKeyPairByte);
+        }
+        //经过实验：这两个MasterKeyPair,只要椭圆曲线参数没有变。这两个MasterKeyPair就不会变！，所以上述代码可以删除。
+        //经过实验，在缓存中需要存储的其实就只是serverTmpKey即可，其余代码可以不变！
         Map<String, Object> map = new HashMap<>();
         map.put("publicEncMasterKey", Base64.getUrlEncoder().encode(encryptMasterKeyPair.getPublicKey().toByteArray()));
         map.put("privateEncMasterKey", Base64.getUrlEncoder().encode(encryptMasterKeyPair.getPrivateKey().toByteArray()));
         map.put("publicSignMasterKey", Base64.getUrlEncoder().encode(signMasterKeyPair.getPublicKey().toByteArray()));
         map.put("privateSignMasterKey", Base64.getUrlEncoder().encode(signMasterKeyPair.getPrivateKey().toByteArray()));
-        map.put("id", "0E7231DC797C486290E8713CA3C6ECCC");
+        map.put("id", id);
         kgcMasterService.updateKgc(map);
     }
 
@@ -43,6 +63,7 @@ public class KGCMaster {
      * @return encrypt private key
      */
     public PrivateKey genEncryptPrivateKey(String id) {
+
         MasterPrivateKey privateKey = encryptMasterKeyPair.getPrivateKey();
         try {
             return kgc.genPrivateKey(privateKey, id, PrivateKeyType.KEY_ENCRYPT);

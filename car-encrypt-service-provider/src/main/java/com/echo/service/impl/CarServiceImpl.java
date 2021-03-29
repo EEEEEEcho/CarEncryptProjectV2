@@ -7,6 +7,7 @@ import com.echo.encrypt.gm.sm9.PrivateKey;
 import com.echo.encrypt.gm.sm9.ResultKeyExchange;
 import com.echo.encrypt.gm.sm9.SM9Utils;
 import com.echo.mapper.CarMapper;
+import com.echo.mapper.TmpExchangeInfoMapper;
 import com.echo.pojo.Car;
 import com.echo.pojo.EncryptMessage;
 import com.echo.pojo.HandShakeInfo;
@@ -30,6 +31,8 @@ public class CarServiceImpl implements CarService {
     private KGCMaster kgcMaster;
     @Autowired
     private ServerMaster serverMaster;
+    @Autowired
+    TmpExchangeInfoMapper tmpMapper;
 
     @Override
     public Car startHandShake(String carVin) {
@@ -57,9 +60,18 @@ public class CarServiceImpl implements CarService {
         car.setPrivateSignKey(kgcMaster.encryptMessageToString(carPrivateSignKeyByte, carBirthKey));
         car.setPrivateExecKey(kgcMaster.encryptMessageToString(carPrivateExecKeyByte, carBirthKey));
         //4.将密钥交换所需信息进行封装，需加密
-        G1KeyPair serverTempKey = kgcMaster.getSm9().keyExchangeInit(kgcMaster.getEncryptMasterKeyPair().getPublicKey(), carVin);
+        String serverTmpKeyStr = tmpMapper.findServerTmpKey(carVin);
+        G1KeyPair serverTempKey = null;
+        if(serverTmpKeyStr == null){
+            serverTempKey = kgcMaster.getSm9().keyExchangeInit(kgcMaster.getEncryptMasterKeyPair().getPublicKey(), carVin);
+            String insertServerTmpKey = Base64.getUrlEncoder().encodeToString(serverTempKey.toByteArray());
+            tmpMapper.insertServerTmpKey(carVin,insertServerTmpKey);
+        }
+        else{
+            byte[] serverTmpKeyByte = Base64.getUrlDecoder().decode(serverTmpKeyStr);
+            serverTempKey = G1KeyPair.fromByteArray(kgcMaster.getSm9Curve(),serverTmpKeyByte);
+        }
         //第二次握手还要用，先存一下
-
         serverMaster.setServerTempKey(serverTempKey);
         //用一个容器存握手信息
         HandShakeInfo handShakeInfo = new HandShakeInfo();
@@ -69,6 +81,7 @@ public class CarServiceImpl implements CarService {
         car.setHandShakeInfo(handShakeInfo);
         //清空birtkKey
         car.setBirthKey(null);
+        System.out.println("第一次握手完成");
         return car;
     }
 
@@ -112,7 +125,7 @@ public class CarServiceImpl implements CarService {
             carMapper.updateTheSessionKeyOfCar(map);
             result.setHandShakeInfo(handShakeInfo);
         }
-        //System.out.println("没进来");
+        System.out.println("第二次握手完成");
         return result;
     }
 

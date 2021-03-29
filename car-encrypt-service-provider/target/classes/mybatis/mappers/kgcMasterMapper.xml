@@ -9,7 +9,23 @@
                                public_sign_masterKey = #{publicSignMasterKey},
                                private_sign_masterKey = #{privateSignMasterKey} where id = #{id}
     </update>
-    <select id="getPublicEncryptKey" resultType="String">
-        select
+    <update id="updateKeyPair" parameterType="map">
+        update master_key set enc_master_key_pair = #{encMasterKeyPair},
+                              sign_master_key_pair = #{signMasterKeyPair} where id = #{id}
+    </update>
+    <select id="getKeyPair" resultType="map">
+        select enc_master_key_pair,sign_master_key_pair from master_key where id = "0E7231DC797C486290E8713CA3C6ECCC"
+    </select>
+    <select id="getPublicEncryptMasterKey" resultType="String">
+        select public_enc_masterKey from master_key where id = "0E7231DC797C486290E8713CA3C6ECCC"
+    </select>
+    <select id="getPrivateEncryptMasterKey" resultType="String">
+        select private_enc_masterKey from master_key where id = "0E7231DC797C486290E8713CA3C6ECCC"
+    </select>
+    <select id="getPublicSignMasterKey" resultType="String">
+        select public_sign_masterKey from master_key where id = "0E7231DC797C486290E8713CA3C6ECCC"
+    </select>
+    <select id="getPrivateSignMasterKey" resultType="String">
+        select private_sign_masterKey from master_key where id = "0E7231DC797C486290E8713CA3C6ECCC"
     </select>
 </mapper>
