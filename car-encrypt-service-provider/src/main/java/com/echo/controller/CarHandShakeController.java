@@ -22,6 +22,8 @@ public class CarHandShakeController {
     public Car finishHandShake(@PathVariable("carVin") String carVin,
                            @PathVariable("clientTempKeyStr") String clientTempKeyStr,
                            @PathVariable("sb1Str") String sb1Str) {
-        return carService.finishHandShake(carVin, clientTempKeyStr, sb1Str);
+        Car car = carService.finishHandShake(carVin, clientTempKeyStr, sb1Str);
+        System.out.println(car);
+        return car;
     }
 }

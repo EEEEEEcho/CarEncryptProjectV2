@@ -8,6 +8,6 @@ eureka:
     service-url:
       defaultZone: http://localhost:${server.port}/eureka/
   server:
-    eviction-interval-timer-in-ms: 5000 #每5秒对因为异常等失效的服务进行检测剔除
-    enable-self-preservation: false   #关闭自我保护状态，自我保护是指，在某些微服务停止之后，仍然会在列表中保留一段时间（红字）
+    eviction-interval-timer-in-ms: 5000
+    enable-self-preservation: false
 

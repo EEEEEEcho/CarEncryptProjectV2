@@ -12,6 +12,7 @@ import com.echo.pojo.Car;
 import com.echo.pojo.EncryptMessage;
 import com.echo.pojo.HandShakeInfo;
 import com.echo.service.CarService;
+import com.echo.util.RedisUtil;
 import org.checkerframework.checker.units.qual.C;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -33,6 +34,8 @@ public class CarServiceImpl implements CarService {
     private ServerMaster serverMaster;
     @Autowired
     TmpExchangeInfoMapper tmpMapper;
+    @Autowired
+    private RedisUtil redisUtil;
 
     @Override
     public Car startHandShake(String carVin) {
@@ -60,17 +63,25 @@ public class CarServiceImpl implements CarService {
         car.setPrivateSignKey(kgcMaster.encryptMessageToString(carPrivateSignKeyByte, carBirthKey));
         car.setPrivateExecKey(kgcMaster.encryptMessageToString(carPrivateExecKeyByte, carBirthKey));
         //4.将密钥交换所需信息进行封装，需加密
-        String serverTmpKeyStr = tmpMapper.findServerTmpKey(carVin);
-        G1KeyPair serverTempKey = null;
-        if(serverTmpKeyStr == null){
-            serverTempKey = kgcMaster.getSm9().keyExchangeInit(kgcMaster.getEncryptMasterKeyPair().getPublicKey(), carVin);
-            String insertServerTmpKey = Base64.getUrlEncoder().encodeToString(serverTempKey.toByteArray());
-            tmpMapper.insertServerTmpKey(carVin,insertServerTmpKey);
-        }
-        else{
-            byte[] serverTmpKeyByte = Base64.getUrlDecoder().decode(serverTmpKeyStr);
-            serverTempKey = G1KeyPair.fromByteArray(kgcMaster.getSm9Curve(),serverTmpKeyByte);
-        }
+        //todo 这里逻辑有大问题
+//        String serverTmpKeyStr = tmpMapper.findServerTmpKey(carVin);
+//        Map<Object,Object> carCache = redisUtil.hgetall(carVin);
+//        String serverTmpKeyStr = (String)carCache.get("serverTempKey");
+//        G1KeyPair serverTempKey = null;
+//        if(serverTmpKeyStr == null){
+//            serverTempKey = kgcMaster.getSm9().keyExchangeInit(kgcMaster.getEncryptMasterKeyPair().getPublicKey(), carVin);
+//            String insertServerTmpKey = Base64.getUrlEncoder().encodeToString(serverTempKey.toByteArray());
+//            //tmpMapper.insertServerTmpKey(carVin,insertServerTmpKey);
+//            redisUtil.hset(carVin,"serverTempKey",insertServerTmpKey);
+//        }
+//        else{
+//            byte[] serverTmpKeyByte = Base64.getUrlDecoder().decode(serverTmpKeyStr);
+//            serverTempKey = G1KeyPair.fromByteArray(kgcMaster.getSm9Curve(),serverTmpKeyByte);
+//        }
+        G1KeyPair serverTempKey = kgcMaster.getSm9().keyExchangeInit(kgcMaster.getEncryptMasterKeyPair().getPublicKey(), carVin);
+        String insertServerTmpKey = Base64.getUrlEncoder().encodeToString(serverTempKey.toByteArray());
+        redisUtil.hset(carVin,"serverTempKey",insertServerTmpKey);
+
         //第二次握手还要用，先存一下
         serverMaster.setServerTempKey(serverTempKey);
         //用一个容器存握手信息
@@ -100,6 +111,9 @@ public class CarServiceImpl implements CarService {
         G1KeyPair clientTempKey = G1KeyPair.fromByteArray(kgcMaster.getSm9Curve(), clientTempKeyBytes);
         //4.生成serverAgreementKey
         ResultKeyExchange serverAgreementKey = null;
+        //还原serverTempKey
+        byte[] serverTempKeyByte = decode(redisUtil.hget(carVin,"serverTempKey"));
+        G1KeyPair serverTempKey = G1KeyPair.fromByteArray(kgcMaster.getSm9Curve(), serverTempKeyByte);
         try {
             serverAgreementKey = kgcMaster.getSm9().keyExchange(
                     kgcMaster.getEncryptMasterKeyPair().getPublicKey(),
@@ -107,7 +121,7 @@ public class CarServiceImpl implements CarService {
                     serverMaster.getServerVin(),
                     carVin,
                     serverMaster.getExchangePrivateKey(),
-                    serverMaster.getServerTempKey(),
+                    serverTempKey,
                     clientTempKey.getPublicKey(),
                     16);
         } catch (Exception e) {
@@ -119,24 +133,28 @@ public class CarServiceImpl implements CarService {
             HandShakeInfo handShakeInfo = new HandShakeInfo();
             handShakeInfo.setSA(kgcMaster.encryptMessageToString(serverAgreementKey.getSA2(), birthKey));
             //todo 使用redis进行session key的缓存，目前仍使用的mysql进行存储
-            Map<String, Object> map = new HashMap<>();
-            map.put("sessionKey", encode(serverAgreementKey.getSK()));
-            map.put("carVin", carVin);
-            carMapper.updateTheSessionKeyOfCar(map);
+//            Map<String, Object> map = new HashMap<>();
+//            map.put("sessionKey", encode(serverAgreementKey.getSK()));
+//            map.put("carVin", carVin);
+//            carMapper.updateTheSessionKeyOfCar(map);
+            redisUtil.hset(carVin,"sessionKey",encode(serverAgreementKey.getSK()));
             result.setHandShakeInfo(handShakeInfo);
         }
         System.out.println("第二次握手完成");
+        //删掉这个serverTempkey,其实也可以不用删除的
+        redisUtil.hdel(carVin,"serverTempKey");
         return result;
     }
 
     @Override
     public EncryptMessage sayHello(String carVin, String message) {
-        Car car = carMapper.findCarByCarVin(carVin);
+//        Car car = carMapper.findCarByCarVin(carVin);
         EncryptMessage encryptMessage = new EncryptMessage();
-        if (car == null) {
+        String sessionKeyStr = redisUtil.hget(carVin,"sessionKey");
+        if (sessionKeyStr == null) {
             return encryptMessage;
         }
-        byte[] sessionKey = decode(car.getSessionKey());
+        byte[] sessionKey = decode(sessionKeyStr);
         byte[] decryptByte  = kgcMaster.decryptMessageToByte(message,sessionKey);
         String s = new String(decryptByte);
         System.out.println("The client send:" + s);
