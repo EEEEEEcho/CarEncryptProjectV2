@@ -2,7 +2,9 @@ package com.echo.pojo;
 
 public class EncryptMessage {
     private String timeStamp;
+    private String carVin;
     private String message;
+
 
     public String getTimeStamp() {
         return timeStamp;
@@ -18,5 +20,13 @@ public class EncryptMessage {
 
     public void setMessage(String message) {
         this.message = message;
+    }
+
+    public String getCarVin() {
+        return carVin;
+    }
+
+    public void setCarVin(String carVin) {
+        this.carVin = carVin;
     }
 }

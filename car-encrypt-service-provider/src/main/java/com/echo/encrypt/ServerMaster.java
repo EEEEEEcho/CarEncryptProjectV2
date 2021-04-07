@@ -18,6 +18,7 @@ public class ServerMaster {
     private PrivateKey signPrivateKey;
     private PrivateKey exchangePrivateKey;
     private G1KeyPair serverTempKey;
+    private Integer random;
     @Autowired
     private KGCMaster kgcMaster;
     @Autowired
@@ -74,5 +75,13 @@ public class ServerMaster {
 
     public void setServerTempKey(G1KeyPair serverTempKey) {
         this.serverTempKey = serverTempKey;
+    }
+
+    public Integer getRandom() {
+        return random;
+    }
+
+    public void setRandom(Integer random) {
+        this.random = random;
     }
 }

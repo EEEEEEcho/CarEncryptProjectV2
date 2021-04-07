@@ -9,6 +9,7 @@ public class Car {
     private String sessionKey;
     private String message;
     private HandShakeInfo handShakeInfo;
+    private IdentityAuthInfo identityAuthInfo;
 
     public String getCarVin() {
         return carVin;
@@ -72,5 +73,28 @@ public class Car {
 
     public void setHandShakeInfo(HandShakeInfo handShakeInfo) {
         this.handShakeInfo = handShakeInfo;
+    }
+
+    public IdentityAuthInfo getIdentityAuthInfo() {
+        return identityAuthInfo;
+    }
+
+    public void setIdentityAuthInfo(IdentityAuthInfo identityAuthInfo) {
+        this.identityAuthInfo = identityAuthInfo;
+    }
+
+    @Override
+    public String toString() {
+        return "Car{" +
+                "carVin='" + carVin + '\'' +
+                ", birthKey='" + birthKey + '\'' +
+                ", privateEncKey='" + privateEncKey + '\'' +
+                ", privateSignKey='" + privateSignKey + '\'' +
+                ", privateExecKey='" + privateExecKey + '\'' +
+                ", sessionKey='" + sessionKey + '\'' +
+                ", message='" + message + '\'' +
+                ", handShakeInfo=" + handShakeInfo +
+                ", identityAuthInfo=" + identityAuthInfo +
+                '}';
     }
 }

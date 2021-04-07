@@ -1,6 +1,7 @@
 package com.echo.client;
 
 import com.echo.pojo.Car;
+import com.echo.pojo.CommonMessage;
 import com.echo.pojo.EncryptMessage;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -10,14 +11,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 @FeignClient(value = "service-provider",fallback = CarClientFallBack.class)
 public interface CarClient {
-    @RequestMapping("/car/handshake/start/{carVin}")
-    public Car startHandShake(@PathVariable("carVin") String carVin);
+    @RequestMapping(value = "/car/handshake/first",method = RequestMethod.POST)
+    public CommonMessage<Car> firstHandShake(@RequestParam("data")String data);
 
-    @RequestMapping("/car/handshake/finish/{carVin}/{clientTempKeyStr}/{sb1Str}")
-    public Car finishHandShake(@PathVariable("carVin") String carVin,
-                               @PathVariable("clientTempKeyStr") String clientTempKeyStr,
-                               @PathVariable("sb1Str") String sb1Str);
+    @RequestMapping(value = "/car//handshake/second",method = RequestMethod.POST)
+    public CommonMessage<Car> secondHandShake(@RequestParam("data")String data);
 
-    @RequestMapping(value = "/message",method = RequestMethod.POST)
-    public EncryptMessage sayHello(@RequestParam("carVin")String carVin, @RequestParam("data")String data);
+    @RequestMapping(value = "/car/message",method = RequestMethod.POST)
+    public CommonMessage<EncryptMessage> sendMessage(@RequestParam("data")String data);
 }
