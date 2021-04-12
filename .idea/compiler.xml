@@ -8,11 +8,13 @@
         <outputRelativeToContentRoot value="true" />
         <module name="car-encrypt-service-provider-v2" />
         <module name="car-encrypt-zuul" />
-        <module name="car-encrypt-service-provider" />
         <module name="car-encrypt-service-consumer" />
         <module name="car-encrypt-eureka" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="car-encrypt-service-provider" target="1.8" />
+    </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">

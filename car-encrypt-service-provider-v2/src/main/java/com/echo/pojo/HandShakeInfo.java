@@ -4,8 +4,8 @@ public class HandShakeInfo {
     private String encryptMasterPublicKey;
     private String serverTempKey;
     private String clientTempKey;
-    private String SA;
-    private String SB;
+    private String sa;
+    private String sb;
     private String serverVin;
 
     public String getEncryptMasterPublicKey() {
@@ -32,20 +32,20 @@ public class HandShakeInfo {
         this.clientTempKey = clientTempKey;
     }
 
-    public String getSA() {
-        return SA;
+    public String getSa() {
+        return sa;
     }
 
-    public void setSA(String SA) {
-        this.SA = SA;
+    public void setSa(String sa) {
+        this.sa = sa;
     }
 
-    public String getSB() {
-        return SB;
+    public String getSb() {
+        return sb;
     }
 
-    public void setSB(String SB) {
-        this.SB = SB;
+    public void setSb(String sb) {
+        this.sb = sb;
     }
 
     public String getServerVin() {
@@ -62,8 +62,8 @@ public class HandShakeInfo {
                 "encryptMasterPublicKey='" + encryptMasterPublicKey + '\'' +
                 ", serverTempKey='" + serverTempKey + '\'' +
                 ", clientTempKey='" + clientTempKey + '\'' +
-                ", SA='" + SA + '\'' +
-                ", SB='" + SB + '\'' +
+                ", SA='" + sa + '\'' +
+                ", SB='" + sb + '\'' +
                 ", serverVin='" + serverVin + '\'' +
                 '}';
     }

@@ -91,7 +91,7 @@ public class CarServiceImpl implements CarService {
      */
     private IdentityAuthInfo genIdentityInfo(String carVin, Integer randomB, byte[] birthKey){
         MasterPublicKey signMasterPublicKey = kgcMaster.getSignMasterKeyPair().getPublicKey();
-        int randomA = new Random(47).nextInt();
+        int randomA = new Random(32).nextInt();
         redisUtil.hset(carVin,"randomA",randomA + "");
         serverMaster.setRandom(randomA);
         String msg = carVin + serverMaster.getRandom() + randomB;
@@ -129,7 +129,7 @@ public class CarServiceImpl implements CarService {
         byte[] birthKey = CodeUtil.decodeStringToByte(car.getBirthKey());
         //2.解密clientTempKeyStr和sb1Str
         byte[] clientTempKeyBytes = EncryptUtil.decryptMessageToByte(handShakeInfo.getClientTempKey(), birthKey);
-        byte[] sb1Bytes = EncryptUtil.decryptMessageToByte(handShakeInfo.getSB(), birthKey);
+        byte[] sb1Bytes = EncryptUtil.decryptMessageToByte(handShakeInfo.getSb(), birthKey);
         //3.还原clientTempKey
         G1KeyPair clientTempKey = G1KeyPair.fromByteArray(kgcMaster.getSm9Curve(), clientTempKeyBytes);
         //4.生成serverAgreementKey
@@ -153,7 +153,7 @@ public class CarServiceImpl implements CarService {
         }
         if (serverAgreementKey != null && SM9Utils.byteEqual(sb1Bytes, serverAgreementKey.getSB1())) {
             HandShakeInfo newHandShakeInfo = new HandShakeInfo();
-            newHandShakeInfo.setSA(EncryptUtil.encryptMessageToString(serverAgreementKey.getSA2(), birthKey));
+            newHandShakeInfo.setSa(EncryptUtil.encryptMessageToString(serverAgreementKey.getSA2(), birthKey));
             redisUtil.hset(carVin,"sessionKey",CodeUtil.encodeToString(serverAgreementKey.getSK()));
             //删掉这个serverTempkey,其实也可以不用删除的
             redisUtil.hdel(carVin,"serverTempKey");

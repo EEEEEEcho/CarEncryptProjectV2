@@ -8,10 +8,7 @@ import com.echo.pojo.EncryptMessage;
 import com.echo.pojo.HttpStatus;
 import com.echo.service.CarService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/car")
@@ -21,14 +18,17 @@ public class CarController {
     private CarService carService;
 
     @RequestMapping(value = "/handshake/first",method = RequestMethod.POST)
-    public CommonMessage<Car> firstHandShake(@RequestParam("data")String data){
-        if (data.length() == 0){
+    public CommonMessage<Car> firstHandShake(@RequestBody Car car){
+//        if (data.length() == 0){
+//            return new CommonMessage<>(HttpStatus.NOTFOUND.code, HttpStatus.NOTFOUND.tip, null);
+//        }
+        if (car == null){
             return new CommonMessage<>(HttpStatus.NOTFOUND.code, HttpStatus.NOTFOUND.tip, null);
         }
         else{
-            Car car;
+            //Car car;
             try {
-                car = JSON.parseObject(data, Car.class);
+                //car = JSON.parseObject(data, Car.class);
                 car = carService.firstHandShake(car);
                 if(car == null){
                     return new CommonMessage<>(HttpStatus.NOTFOUND.code, HttpStatus.NOTFOUND.tip, null);
@@ -43,14 +43,12 @@ public class CarController {
     }
 
     @RequestMapping(value = "/handshake/second",method = RequestMethod.POST)
-    public CommonMessage<Car> secondHandShake(@RequestParam("data")String data){
-        if (data.length() == 0){
+    public CommonMessage<Car> secondHandShake(@RequestBody Car car){
+        if (car == null){
             return new CommonMessage<>(HttpStatus.NOTFOUND.code, HttpStatus.NOTFOUND.tip, null);
         }
         else{
-            Car car;
             try {
-                car = JSON.parseObject(data, Car.class);
                 car = carService.secondHandShake(car);
                 if(car == null){
                     return new CommonMessage<>(HttpStatus.NOTFOUND.code, HttpStatus.NOTFOUND.tip, null);
@@ -64,15 +62,36 @@ public class CarController {
         }
     }
 
+    //旧版本
+//    @RequestMapping(value = "/handshake/second",method = RequestMethod.POST)
+//    public CommonMessage<Car> secondHandShake(@RequestParam("data")String data){
+//        if (data.length() == 0){
+//            return new CommonMessage<>(HttpStatus.NOTFOUND.code, HttpStatus.NOTFOUND.tip, null);
+//        }
+//        else{
+//            Car car;
+//            try {
+//                car = JSON.parseObject(data, Car.class);
+//                car = carService.secondHandShake(car);
+//                if(car == null){
+//                    return new CommonMessage<>(HttpStatus.NOTFOUND.code, HttpStatus.NOTFOUND.tip, null);
+//                }
+//            }
+//            catch (JSONException jsonException){
+//                jsonException.printStackTrace();
+//                return new CommonMessage<>(HttpStatus.NOTFOUND.code, HttpStatus.NOTFOUND.tip, null);
+//            }
+//            return new CommonMessage<>(HttpStatus.SUCCESS.code, HttpStatus.SUCCESS.tip, car);
+//        }
+//    }
+
     @RequestMapping(value = "/message",method = RequestMethod.POST)
-    public CommonMessage<EncryptMessage> sendMessage(@RequestParam("data") String data){
-        if (data.length() == 0){
+    public CommonMessage<EncryptMessage> sendMessage(@RequestBody EncryptMessage encryptMessage){
+        if (encryptMessage == null){
             return new CommonMessage<>(HttpStatus.NOTFOUND.code, HttpStatus.NOTFOUND.tip, null);
         }
         else{
-            EncryptMessage encryptMessage;
             try {
-                encryptMessage = JSON.parseObject(data, EncryptMessage.class);
                 encryptMessage = carService.sendMessage(encryptMessage);
                 if(encryptMessage == null){
                     return new CommonMessage<>(HttpStatus.NOTFOUND.code, HttpStatus.NOTFOUND.tip, null);
